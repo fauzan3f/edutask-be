@@ -15,7 +15,8 @@ class DatabaseSeeder extends Seeder
         // Run migrations for spatie/permission
         $this->call([
             RolesAndPermissionsSeeder::class,
-            ProjectsAndTasksSeeder::class,
+            ProjectSeeder::class,
+            TeamMemberSeeder::class,
         ]);
     }
 }

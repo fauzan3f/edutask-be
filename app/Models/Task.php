@@ -12,49 +12,34 @@ class Task extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $fillable = [
         'title',
         'description',
         'project_id',
-        'assigned_to',
-        'created_by',
         'status',
         'priority',
         'due_date',
-        'start_date',
-        'estimated_hours',
-        'actual_hours',
-        'completed_at',
-        'task_code',
+        'assigned_to',
+        'created_by',
     ];
 
     /**
      * The attributes that should be cast.
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $casts = [
         'due_date' => 'date',
-        'start_date' => 'date',
-        'completed_at' => 'datetime',
     ];
 
     /**
-     * Get the project that the task belongs to.
+     * Get the project that owns the task.
      */
     public function project()
     {
         return $this->belongsTo(Project::class);
-    }
-
-    /**
-     * Get the user that the task is assigned to.
-     */
-    public function assignee()
-    {
-        return $this->belongsTo(User::class, 'assigned_to');
     }
 
     /**
@@ -63,6 +48,14 @@ class Task extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Get the user that the task is assigned to.
+     */
+    public function assignee()
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
     }
 
     /**

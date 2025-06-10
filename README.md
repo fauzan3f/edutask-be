@@ -173,7 +173,6 @@ http://localhost:8000/api/documentation
 
 ## Pengembang
 
-- Fauzan Fathurrahman (Frontend Developer)
-- Ahmad Rizki (Backend Developer)
-- Sarah Kamila (UI/UX Designer)
-- Budi Santoso (QA Engineer)
+- Muhammad Fauzan (Pengembang Aplikasi)
+- Rizki Yudistira (Membantu Front End)
+- Irsa Nurrohim (Membantu Back End)

@@ -12,30 +12,25 @@ class Project extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
         'description',
-        'created_by',
-        'manager_id',
-        'start_date',
-        'end_date',
         'status',
-        'priority',
-        'code',
-        'is_archived',
+        'deadline',
+        'progress',
+        'created_by',
     ];
 
     /**
      * The attributes that should be cast.
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'is_archived' => 'boolean',
+        'deadline' => 'date',
+        'progress' => 'integer',
     ];
 
     /**
@@ -47,29 +42,29 @@ class Project extends Model
     }
 
     /**
-     * Get the manager of the project.
-     */
-    public function manager()
-    {
-        return $this->belongsTo(User::class, 'manager_id');
-    }
-
-    /**
-     * The users that belong to the project.
-     */
-    public function members()
-    {
-        return $this->belongsToMany(User::class, 'project_user')
-                    ->withPivot('role')
-                    ->withTimestamps();
-    }
-
-    /**
      * Get the tasks for the project.
      */
     public function tasks()
     {
         return $this->hasMany(Task::class);
+    }
+
+    /**
+     * The members that belong to the project.
+     */
+    public function members()
+    {
+        return $this->belongsToMany(User::class, 'project_members')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the project manager.
+     */
+    public function manager()
+    {
+        return $this->members()->wherePivot('role', 'manager')->first();
     }
 
     /**

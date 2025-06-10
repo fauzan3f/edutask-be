@@ -3,6 +3,9 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TeamMemberController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +38,43 @@ Route::get('test', function() {
     return response()->json(['message' => 'API is working!']);
 });
 
+// Public routes for testing
+Route::get('projects', [ProjectController::class, 'index']);
+Route::get('tasks', [TaskController::class, 'index']);
+
+// Team members route (public)
+Route::get('team-members', [TeamMemberController::class, 'index']);
+Route::get('team-members/{id}', [TeamMemberController::class, 'show']);
+
+// Protected routes
+Route::group(['middleware' => 'auth:api'], function () {
+    // Project routes
+    Route::post('projects', [ProjectController::class, 'store']);
+    Route::get('projects/{id}', [ProjectController::class, 'show']);
+    Route::put('projects/{id}', [ProjectController::class, 'update']);
+    Route::delete('projects/{id}', [ProjectController::class, 'destroy']);
+    
+    // Project members
+    Route::get('projects/{id}/members', [ProjectController::class, 'members']);
+    Route::post('projects/{id}/members', [ProjectController::class, 'addMember']);
+    Route::delete('projects/{id}/members/{userId}', [ProjectController::class, 'removeMember']);
+    
+    // Project tasks
+    Route::get('projects/{id}/tasks', [ProjectController::class, 'tasks']);
+    
+    // Task routes
+    Route::post('tasks', [TaskController::class, 'store']);
+    Route::get('tasks/{id}', [TaskController::class, 'show']);
+    Route::put('tasks/{id}', [TaskController::class, 'update']);
+    Route::delete('tasks/{id}', [TaskController::class, 'destroy']);
+    
+    // Task status
+    Route::put('tasks/{id}/status', [TaskController::class, 'updateStatus']);
+    
+    // Task assignment
+    Route::put('tasks/{id}/assign', [TaskController::class, 'assignTask']);
+});
+
 /* 
 // Protected routes - Commented out until controllers are created
 Route::group(['middleware' => 'auth:api'], function () {
@@ -42,34 +82,6 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('users', 'App\Http\Controllers\UserController@index')->middleware('permission:manage users');
     Route::get('users/{id}', 'App\Http\Controllers\UserController@show');
     Route::put('users/{id}', 'App\Http\Controllers\UserController@update');
-    
-    // Project routes
-    Route::get('projects', 'App\Http\Controllers\ProjectController@index');
-    Route::post('projects', 'App\Http\Controllers\ProjectController@store')->middleware('permission:create project');
-    Route::get('projects/{id}', 'App\Http\Controllers\ProjectController@show')->middleware('permission:view project');
-    Route::put('projects/{id}', 'App\Http\Controllers\ProjectController@update')->middleware('permission:update project');
-    Route::delete('projects/{id}', 'App\Http\Controllers\ProjectController@destroy')->middleware('permission:delete project');
-    
-    // Project members
-    Route::get('projects/{id}/members', 'App\Http\Controllers\ProjectController@members');
-    Route::post('projects/{id}/members', 'App\Http\Controllers\ProjectController@addMember')->middleware('permission:update project');
-    Route::delete('projects/{id}/members/{userId}', 'App\Http\Controllers\ProjectController@removeMember')->middleware('permission:update project');
-    
-    // Task routes
-    Route::get('tasks', 'App\Http\Controllers\TaskController@index');
-    Route::post('tasks', 'App\Http\Controllers\TaskController@store')->middleware('permission:create task');
-    Route::get('tasks/{id}', 'App\Http\Controllers\TaskController@show')->middleware('permission:view task');
-    Route::put('tasks/{id}', 'App\Http\Controllers\TaskController@update')->middleware('permission:update task');
-    Route::delete('tasks/{id}', 'App\Http\Controllers\TaskController@destroy')->middleware('permission:delete task');
-    
-    // Task status
-    Route::put('tasks/{id}/status', 'App\Http\Controllers\TaskController@updateStatus')->middleware('permission:update tasks');
-    
-    // Task assignment
-    Route::put('tasks/{id}/assign', 'App\Http\Controllers\TaskController@assignTask')->middleware('permission:assign tasks');
-    
-    // Project tasks
-    Route::get('projects/{id}/tasks', 'App\Http\Controllers\ProjectController@tasks');
     
     // Comments
     Route::get('tasks/{id}/comments', 'App\Http\Controllers\CommentController@index');

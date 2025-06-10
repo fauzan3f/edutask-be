@@ -15,6 +15,9 @@ use App\Http\Controllers\AuthController;
 |
 */
 
+// Simple test route for debugging
+Route::get('/test', [AuthController::class, 'test']);
+
 // Authentication routes
 Route::group(['prefix' => 'auth'], function () {
     Route::post('login', [AuthController::class, 'login']);
@@ -27,7 +30,13 @@ Route::group(['prefix' => 'auth'], function () {
     });
 });
 
-// Protected routes
+// Test route for debugging
+Route::get('test', function() {
+    return response()->json(['message' => 'API is working!']);
+});
+
+/* 
+// Protected routes - Commented out until controllers are created
 Route::group(['middleware' => 'auth:api'], function () {
     // User routes
     Route::get('users', 'App\Http\Controllers\UserController@index')->middleware('permission:manage users');
@@ -89,4 +98,5 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('files/task/{id}', 'App\Http\Controllers\FileUploadController@getTaskFiles');
     Route::get('files/project/{id}', 'App\Http\Controllers\FileUploadController@getProjectFiles');
     Route::delete('files/{id}', 'App\Http\Controllers\FileUploadController@destroy');
-}); 
+});
+*/ 

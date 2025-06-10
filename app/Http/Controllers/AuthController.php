@@ -17,7 +17,7 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'test']]);
     }
 
     /**
@@ -50,11 +50,13 @@ class AuthController extends Controller
             'phone' => $request->phone,
         ]);
 
-        // Assign default role to new user (team member)
-        $user->assignRole('team_member');
+        // Assign default role to new user if role system is available
+        if (method_exists($user, 'assignRole')) {
+            $user->assignRole('team_member');
+        }
 
         // Generate token for the new user
-        $token = Auth::login($user);
+        $token = Auth::guard('api')->login($user);
 
         return $this->respondWithToken($token);
     }
@@ -78,7 +80,7 @@ class AuthController extends Controller
 
         $credentials = $request->only('email', 'password');
 
-        if (! $token = Auth::attempt($credentials)) {
+        if (! $token = Auth::guard('api')->attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -92,14 +94,23 @@ class AuthController extends Controller
      */
     public function me()
     {
-        $user = Auth::user();
+        $user = Auth::guard('api')->user();
         
         // Include roles and permissions in the response
-        return response()->json([
+        $userData = [
             'user' => $user,
-            'roles' => $user->getRoleNames(),
-            'permissions' => $user->getAllPermissions()->pluck('name'),
-        ]);
+        ];
+        
+        // Check if user has roles and permissions methods
+        if (method_exists($user, 'getRoleNames')) {
+            $userData['roles'] = $user->getRoleNames();
+        }
+        
+        if (method_exists($user, 'getAllPermissions')) {
+            $userData['permissions'] = $user->getAllPermissions()->pluck('name');
+        }
+        
+        return response()->json($userData);
     }
 
     /**
@@ -109,7 +120,7 @@ class AuthController extends Controller
      */
     public function logout()
     {
-        Auth::logout();
+        Auth::guard('api')->logout();
 
         return response()->json(['message' => 'Successfully logged out']);
     }
@@ -121,7 +132,17 @@ class AuthController extends Controller
      */
     public function refresh()
     {
-        return $this->respondWithToken(Auth::refresh());
+        return $this->respondWithToken(Auth::guard('api')->refresh());
+    }
+
+    /**
+     * Test endpoint for debugging.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function test()
+    {
+        return response()->json(['message' => 'API is working!']);
     }
 
     /**
@@ -133,13 +154,24 @@ class AuthController extends Controller
      */
     protected function respondWithToken($token)
     {
-        return response()->json([
+        $user = Auth::guard('api')->user();
+        
+        $response = [
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => Auth::factory()->getTTL() * 60,
-            'user' => Auth::user(),
-            'roles' => Auth::user()->getRoleNames(),
-            'permissions' => Auth::user()->getAllPermissions()->pluck('name'),
-        ]);
+            'expires_in' => config('jwt.ttl') * 60,
+            'user' => $user,
+        ];
+        
+        // Add roles and permissions if available
+        if (method_exists($user, 'getRoleNames')) {
+            $response['roles'] = $user->getRoleNames();
+        }
+        
+        if (method_exists($user, 'getAllPermissions')) {
+            $response['permissions'] = $user->getAllPermissions()->pluck('name');
+        }
+        
+        return response()->json($response);
     }
 }

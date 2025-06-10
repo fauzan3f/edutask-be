@@ -1,65 +1,179 @@
-<<<<<<< HEAD
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# EduTask - Project Management System (Backend)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+EduTask adalah sistem manajemen proyek berbasis web yang dirancang khusus untuk lingkungan akademik. Aplikasi ini memungkinkan dosen, mahasiswa, dan tim riset untuk berkolaborasi dalam proyek, mengelola tugas, dan melacak progres pekerjaan.
 
-## About Laravel
+## Fitur Utama
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Autentikasi JWT**: Login, registrasi, dan otorisasi user berbasis token JWT dengan refresh token
+- **Multi-role User**: Admin, Manajer Proyek, dan Anggota Tim dengan permission yang berbeda
+- **Manajemen Proyek**: CRUD operasi untuk proyek dan tugas
+- **Status Tugas**: Pelacakan status tugas (To Do, In Progress, Review, Done)
+- **Komentar**: Fitur komentar untuk kolaborasi tim pada tugas
+- **Dashboard**: Statistik dan visualisasi progres menggunakan Chart.js
+- **Upload File**: Sistem pengunggahan file untuk tugas dan proyek
+- **Jadwal Presentasi**: Fitur penjadwalan presentasi dengan notifikasi
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Teknologi
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Laravel (Backend API)
+- JWT Authentication
+- Spatie Permission untuk manajemen role dan permission
+- Database MySQL/SQLite
 
-## Learning Laravel
+## Entity Relationship Diagram (ERD)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```
++---------------+       +---------------+       +---------------+
+|     Users     |       |    Projects   |       |     Tasks     |
++---------------+       +---------------+       +---------------+
+| id            |       | id            |       | id            |
+| name          |       | name          |       | title         |
+| email         |       | description   |       | description   |
+| password      |       | created_by    |------>| project_id    |----+
+| position      |<------| manager_id    |       | assigned_to   |<---+
+| department    |       | start_date    |       | created_by    |<---+
+| avatar        |       | end_date      |       | status        |
+| bio           |       | status        |       | priority      |
+| phone         |       | priority      |       | due_date      |
+| roles         |       | code          |       | start_date    |
++-------+-------+       | is_archived   |       | estimated_hrs |
+        |               +-------+-------+       | actual_hours  |
+        |                       |               | completed_at  |
+        |               +-------v-------+       | task_code     |
+        |               | project_user  |       +-------+-------+
+        |               +---------------+               |
+        +-------------->| project_id    |               |
+                        | user_id       |               |
+                        | role          |               |
+                        +---------------+               |
+                                                        |
++---------------+       +---------------+       +-------v-------+
+|   Comments    |       | Task Statuses |       | Task Reminders|
++---------------+       +---------------+       +---------------+
+| id            |       | id            |       | id            |
+| content       |       | task_id       |------>| task_id       |
+| task_id       |------>| changed_by    |<---+  | user_id       |<---+
+| user_id       |<---+  | from_status   |    |  | reminder_time |    |
+| parent_id     |----+  | to_status     |    |  | is_sent       |    |
+| is_edited     |    |  | comment       |    |  | sent_at       |    |
+| edited_at     |    |  +---------------+    |  | reminder_type |    |
++---------------+    |                        |  | message      |    |
+                     |                        |  | is_recurring |    |
+                     |                        |  +---------------+    |
+                     |                        |                       |
+                     |                        |                       |
+                     |                        |                       |
+                     |                        |                       |
+                     +------------------------+-----------------------+
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Alur Sistem
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1. **User Authentication**
+   - User melakukan registrasi atau login
+   - Sistem menghasilkan JWT token untuk autentikasi
+   - Token disimpan di client untuk request selanjutnya
 
-## Laravel Sponsors
+2. **Manajemen Proyek**
+   - Admin/Project Manager membuat proyek baru
+   - Proyek ditetapkan dengan manager dan anggota tim
+   - Anggota dapat melihat proyek dimana mereka terlibat
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+3. **Manajemen Tugas**
+   - Project Manager membuat dan menetapkan tugas
+   - Tugas dikategorikan berdasarkan status (To Do, In Progress, Review, Done)
+   - Anggota tim dapat memperbarui status tugas yang ditetapkan pada mereka
 
-### Premium Partners
+4. **Kolaborasi**
+   - Anggota tim dapat menambahkan komentar pada tugas
+   - File dapat diunggah dan dibagikan dalam konteks tugas atau proyek
+   - Notifikasi dan pengingat otomatis untuk tenggat waktu tugas
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+5. **Monitoring dan Pelaporan**
+   - Dashboard menampilkan statistik dan progres proyek
+   - Visualisasi data menggunakan Chart.js
+   - Laporan dapat dilihat berdasarkan proyek, anggota, atau periode waktu
 
-## Contributing
+6. **Penjadwalan Presentasi**
+   - Jadwal presentasi dapat dibuat untuk proyek
+   - Anggota tim diundang dan dapat mengonfirmasi kehadiran
+   - Pengingat otomatis dikirim mendekati waktu presentasi
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Permission Management
 
-## Code of Conduct
+| Permission | Admin | Project Manager | Team Member |
+|------------|-------|----------------|-------------|
+| manage users | ✓ | ✗ | ✗ |
+| create project | ✓ | ✓ | ✗ |
+| update project | ✓ | ✓ | ✗ |
+| delete project | ✓ | ✗ | ✗ |
+| view project | ✓ | ✓ | ✓ |
+| create task | ✓ | ✓ | ✗ |
+| update task | ✓ | ✓ | ✗ |
+| delete task | ✓ | ✓ | ✗ |
+| view task | ✓ | ✓ | ✓ |
+| assign tasks | ✓ | ✓ | ✗ |
+| update tasks | ✓ | ✓ | ✓ |
+| comment tasks | ✓ | ✓ | ✓ |
+| view dashboard | ✓ | ✓ | ✓ |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Instalasi
 
-## Security Vulnerabilities
+1. Clone repository
+   ```
+   git clone https://github.com/fauzan3f/edutask-be.git
+   cd edutask-be
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+2. Install dependencies
+   ```
+   composer install
+   ```
 
-## License
+3. Setup environment
+   ```
+   cp .env.example .env
+   php artisan key:generate
+   php artisan jwt:secret
+   ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-=======
-# edutask-be
->>>>>>> 1ebcd9d1904f48cd718858f3ca788aeb48f57fc1
+4. Configure database in .env file
+
+5. Run migrations and seeders
+   ```
+   php artisan migrate --seed
+   ```
+
+6. Start development server
+   ```
+   php artisan serve
+   ```
+
+## Default Users
+
+- **Admin**
+  - Email: admin@edutask.com
+  - Password: password
+
+- **Project Manager**
+  - Email: manager@edutask.com
+  - Password: password
+
+- **Team Member**
+  - Email: member@edutask.com
+  - Password: password
+
+## API Endpoints
+
+Dokumentasi API lengkap tersedia setelah instalasi di:
+
+```
+http://localhost:8000/api/documentation
+```
+
+## Pengembang
+
+- Fauzan Fathurrahman (Frontend Developer)
+- Ahmad Rizki (Backend Developer)
+- Sarah Kamila (UI/UX Designer)
+- Budi Santoso (QA Engineer)

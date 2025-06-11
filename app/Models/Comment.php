@@ -12,15 +12,12 @@ class Comment extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $fillable = [
         'content',
-        'task_id',
         'user_id',
-        'parent_id',
-        'is_edited',
-        'edited_at',
+        'task_id',
     ];
 
     /**
@@ -34,19 +31,19 @@ class Comment extends Model
     ];
 
     /**
-     * Get the task that the comment belongs to.
-     */
-    public function task()
-    {
-        return $this->belongsTo(Task::class);
-    }
-
-    /**
-     * Get the user who created the comment.
+     * Get the user that created the comment.
      */
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the task that owns the comment.
+     */
+    public function task()
+    {
+        return $this->belongsTo(Task::class);
     }
 
     /**

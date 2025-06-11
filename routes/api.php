@@ -155,6 +155,12 @@ Route::group(['middleware' => 'auth:api'], function () {
     
     // Task assignment
     Route::put('tasks/{id}/assign', [TaskController::class, 'assignTask'])->middleware('role:admin|project_manager');
+
+    // Comments
+    Route::get('tasks/{id}/comments', 'App\Http\Controllers\CommentController@index');
+    Route::post('tasks/{id}/comments', 'App\Http\Controllers\CommentController@store');
+    Route::put('comments/{id}', 'App\Http\Controllers\CommentController@update');
+    Route::delete('comments/{id}', 'App\Http\Controllers\CommentController@destroy');
 });
 
 /* 

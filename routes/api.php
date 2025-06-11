@@ -163,6 +163,19 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::delete('comments/{id}', 'App\Http\Controllers\CommentController@destroy');
 });
 
+// Get users for task assignment (no permission required)
+Route::get('task-assignees', function() {
+    // Get all users with their roles
+    $users = \App\Models\User::with('roles')->select('id', 'name', 'email', 'position', 'department')->get();
+    
+    // Format the response to include role information
+    $users->each(function($user) {
+        $user->role = $user->roles->pluck('name')->first() ?: 'User';
+    });
+    
+    return response()->json(['data' => $users]);
+});
+
 /* 
 // Protected routes - Commented out until controllers are created
 Route::group(['middleware' => 'auth:api'], function () {

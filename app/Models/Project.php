@@ -34,6 +34,17 @@ class Project extends Model
     ];
 
     /**
+     * Set the progress attribute.
+     *
+     * @param  mixed  $value
+     * @return void
+     */
+    public function setProgressAttribute($value)
+    {
+        $this->attributes['progress'] = (int) $value;
+    }
+
+    /**
      * Get the user that created the project.
      */
     public function creator()

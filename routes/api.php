@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamMemberController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +39,81 @@ Route::get('test', function() {
     return response()->json(['message' => 'API is working!']);
 });
 
+// Debug route for projects
+Route::get('debug/projects/{id}', function($id) {
+    $project = \App\Models\Project::find($id);
+    if (!$project) {
+        return response()->json(['error' => 'Project not found'], 404);
+    }
+    
+    return response()->json([
+        'project' => $project,
+        'progress_type' => gettype($project->progress),
+        'progress_value' => $project->progress,
+        'raw_progress' => \Illuminate\Support\Facades\DB::select('SELECT progress FROM projects WHERE id = ?', [$id])
+    ]);
+});
+
+// Debug route to update project progress
+Route::get('debug/projects/{id}/update-progress/{value}', function($id, $value) {
+    try {
+        $project = \App\Models\Project::find($id);
+        if (!$project) {
+            return response()->json(['error' => 'Project not found'], 404);
+        }
+        
+        // Update progress directly
+        \Illuminate\Support\Facades\DB::update('UPDATE projects SET progress = ? WHERE id = ?', [(int)$value, $id]);
+        
+        // Reload the project
+        $project = \App\Models\Project::find($id);
+        
+        return response()->json([
+            'message' => 'Progress updated successfully',
+            'project' => $project,
+            'progress_type' => gettype($project->progress),
+            'progress_value' => $project->progress
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});
+
+// Debug route to update project using model
+Route::get('debug/projects/{id}/update-model/{value}', function($id, $value) {
+    try {
+        $project = \App\Models\Project::find($id);
+        if (!$project) {
+            return response()->json(['error' => 'Project not found'], 404);
+        }
+        
+        // Log before update
+        \Illuminate\Support\Facades\Log::info('Before update:', [
+            'progress_type' => gettype($project->progress),
+            'progress_value' => $project->progress
+        ]);
+        
+        // Update using model
+        $project->progress = $value;
+        $project->save();
+        
+        // Log after update
+        \Illuminate\Support\Facades\Log::info('After update:', [
+            'progress_type' => gettype($project->progress),
+            'progress_value' => $project->progress
+        ]);
+        
+        return response()->json([
+            'message' => 'Project updated successfully using model',
+            'project' => $project,
+            'progress_type' => gettype($project->progress),
+            'progress_value' => $project->progress
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});
+
 // Public routes for testing
 Route::get('projects', [ProjectController::class, 'index']);
 Route::get('tasks', [TaskController::class, 'index']);
@@ -48,11 +124,17 @@ Route::get('team-members/{id}', [TeamMemberController::class, 'show']);
 
 // Protected routes
 Route::group(['middleware' => 'auth:api'], function () {
+    // User routes
+    Route::get('users', [UserController::class, 'index'])->middleware('permission:manage users');
+    Route::get('users/{id}', [UserController::class, 'show']);
+    Route::put('users/{id}', [UserController::class, 'update']);
+    Route::delete('users/{id}', [UserController::class, 'destroy'])->middleware('permission:manage users');
+    
     // Project routes
     Route::post('projects', [ProjectController::class, 'store']);
     Route::get('projects/{id}', [ProjectController::class, 'show']);
-    Route::put('projects/{id}', [ProjectController::class, 'update']);
-    Route::delete('projects/{id}', [ProjectController::class, 'destroy']);
+    Route::put('projects/{id}', [ProjectController::class, 'update'])->middleware('role:admin|project_manager');
+    Route::delete('projects/{id}', [ProjectController::class, 'destroy'])->middleware('role:admin');
     
     // Project members
     Route::get('projects/{id}/members', [ProjectController::class, 'members']);
@@ -72,7 +154,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::put('tasks/{id}/status', [TaskController::class, 'updateStatus']);
     
     // Task assignment
-    Route::put('tasks/{id}/assign', [TaskController::class, 'assignTask']);
+    Route::put('tasks/{id}/assign', [TaskController::class, 'assignTask'])->middleware('role:admin|project_manager');
 });
 
 /* 

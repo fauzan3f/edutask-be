@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class ProjectController extends Controller
 {
@@ -77,23 +78,61 @@ class ProjectController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $project = Project::findOrFail($id);
+        try {
+            // Debug log
+            Log::info('Update project request data:', $request->all());
+            Log::info('Project ID: ' . $id);
+            Log::info('Progress type: ' . gettype($request->progress));
+            Log::info('Progress value: ' . $request->progress);
+            
+            // Check if user is admin or project manager
+            $user = Auth::user();
+            Log::info('User roles:', $user->roles->pluck('name')->toArray());
+            
+            if (!($user->roles->contains('name', 'admin') || $user->roles->contains('name', 'project_manager'))) {
+                return response()->json(['error' => 'Unauthorized. Only admin and project manager can update projects.'], 403);
+            }
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string',
-            'status' => 'sometimes|required|string|in:Planning,In Progress,Completed',
-            'deadline' => 'sometimes|required|date',
-            'progress' => 'sometimes|required|integer|min:0|max:100',
-        ]);
+            $project = Project::findOrFail($id);
+            Log::info('Project found:', $project->toArray());
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            $validator = Validator::make($request->all(), [
+                'name' => 'sometimes|required|string|max:255',
+                'description' => 'sometimes|required|string',
+                'status' => 'sometimes|required|string|in:Planning,In Progress,Completed',
+                'deadline' => 'sometimes|required|date',
+                'progress' => 'sometimes|required|integer|min:0|max:100',
+            ]);
+
+            if ($validator->fails()) {
+                Log::error('Validation failed:', $validator->errors()->toArray());
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            // Convert progress to integer if it exists
+            $data = $request->all();
+            if (isset($data['progress'])) {
+                $data['progress'] = (int) $data['progress'];
+                Log::info('Progress after conversion: ' . $data['progress']);
+            }
+
+            // Update project with specific handling for progress
+            $project->fill($data);
+            if (isset($data['progress'])) {
+                $project->progress = (int) $data['progress'];
+                Log::info('Progress set directly: ' . $project->progress);
+            }
+            $project->save();
+            
+            Log::info('Project updated successfully');
+            Log::info('Updated project data:', $project->toArray());
+
+            return response()->json(['message' => 'Project updated successfully', 'data' => $project]);
+        } catch (\Exception $e) {
+            Log::error('Error updating project: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            return response()->json(['error' => 'Failed to update project: ' . $e->getMessage()], 500);
         }
-
-        $project->update($request->all());
-
-        return response()->json(['message' => 'Project updated successfully', 'data' => $project]);
     }
 
     /**
@@ -104,6 +143,12 @@ class ProjectController extends Controller
      */
     public function destroy($id)
     {
+        // Check if user is admin
+        $user = Auth::user();
+        if (!$user->roles->contains('name', 'admin')) {
+            return response()->json(['error' => 'Unauthorized. Only admin can delete projects.'], 403);
+        }
+
         $project = Project::findOrFail($id);
         $project->delete();
 

@@ -10,6 +10,7 @@ EduTask adalah sistem manajemen proyek berbasis web yang dirancang khusus untuk 
 - **Status Tugas**: Pelacakan status tugas (To Do, In Progress, Review, Done)
 - **Komentar**: Fitur komentar untuk kolaborasi tim pada tugas
 - **Dashboard**: Statistik dan visualisasi progres menggunakan Chart.js
+- **Visualisasi Progres**: Tampilan grafik interaktif untuk progres proyek dengan Chart.js
 - **Upload File**: Sistem pengunggahan file untuk tugas dan proyek
 - **Jadwal Presentasi**: Fitur penjadwalan presentasi dengan notifikasi
 
@@ -19,6 +20,7 @@ EduTask adalah sistem manajemen proyek berbasis web yang dirancang khusus untuk 
 - JWT Authentication
 - Spatie Permission untuk manajemen role dan permission
 - Database MySQL/SQLite
+- REST API untuk integrasi dengan frontend
 
 ## Entity Relationship Diagram (ERD)
 
@@ -37,10 +39,11 @@ EduTask adalah sistem manajemen proyek berbasis web yang dirancang khusus untuk 
 | phone         |       | priority      |       | due_date      |
 | roles         |       | code          |       | start_date    |
 +-------+-------+       | is_archived   |       | estimated_hrs |
-        |               +-------+-------+       | actual_hours  |
-        |                       |               | completed_at  |
-        |               +-------v-------+       | task_code     |
-        |               | project_user  |       +-------+-------+
+        |               | progress      |       | actual_hours  |
+        |               +-------+-------+       | completed_at  |
+        |                       |               | task_code     |
+        |               +-------v-------+       +-------+-------+
+        |               | project_user  |               |
         |               +---------------+               |
         +-------------->| project_id    |               |
                         | user_id       |               |
@@ -67,6 +70,20 @@ EduTask adalah sistem manajemen proyek berbasis web yang dirancang khusus untuk 
                      +------------------------+-----------------------+
 ```
 
+## Model Progress Project
+
+Backend mendukung pelacakan progress project dengan atribut berikut:
+
+- `progress` (integer): Nilai persentase progress (0-100%)
+- `status` (enum): Status project (Planning, In Progress, Completed)
+
+Model `Project` mengimplementasikan:
+
+- Cast otomatis untuk kolom `progress` ke tipe integer
+- Mutator khusus `setProgressAttribute` untuk memastikan nilai selalu berupa integer
+- Relasi ke task-task yang terkait
+- Perhitungan persentase penyelesaian otomatis berdasarkan status task
+
 ## Alur Sistem
 
 1. **User Authentication**
@@ -78,11 +95,13 @@ EduTask adalah sistem manajemen proyek berbasis web yang dirancang khusus untuk 
    - Admin/Project Manager membuat proyek baru
    - Proyek ditetapkan dengan manager dan anggota tim
    - Anggota dapat melihat proyek dimana mereka terlibat
+   - Progress proyek dilacak dan divisualisasikan dengan Chart.js
 
 3. **Manajemen Tugas**
    - Project Manager membuat dan menetapkan tugas
    - Tugas dikategorikan berdasarkan status (To Do, In Progress, Review, Done)
    - Anggota tim dapat memperbarui status tugas yang ditetapkan pada mereka
+   - Progress task secara otomatis memperbarui progress project
 
 4. **Kolaborasi**
    - Anggota tim dapat menambahkan komentar pada tugas
@@ -91,7 +110,8 @@ EduTask adalah sistem manajemen proyek berbasis web yang dirancang khusus untuk 
 
 5. **Monitoring dan Pelaporan**
    - Dashboard menampilkan statistik dan progres proyek
-   - Visualisasi data menggunakan Chart.js
+   - Visualisasi data menggunakan Chart.js dengan grafik donut untuk progress
+   - Warna grafik menyesuaikan dengan status proyek (Planning: Biru, In Progress: Oranye, Completed: Hijau)
    - Laporan dapat dilihat berdasarkan proyek, anggota, atau periode waktu
 
 6. **Penjadwalan Presentasi**
@@ -170,6 +190,13 @@ Dokumentasi API lengkap tersedia setelah instalasi di:
 ```
 http://localhost:8000/api/documentation
 ```
+
+### Endpoint Progress Project
+
+- `GET /api/projects/{id}`: Mendapatkan detail proyek termasuk nilai progress
+- `PUT /api/projects/{id}`: Mengupdate project termasuk nilai progress
+- `GET /api/debug/projects/{id}`: Endpoint debug untuk memeriksa tipe data progress
+- `GET /api/debug/projects/{id}/update-progress/{value}`: Endpoint debug untuk memperbarui progress
 
 ## Pengembang
 

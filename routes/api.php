@@ -133,7 +133,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     // Project routes
     Route::post('projects', [ProjectController::class, 'store']);
     Route::get('projects/{id}', [ProjectController::class, 'show']);
-    Route::put('projects/{id}', [ProjectController::class, 'update'])->middleware('role:admin|project_manager');
+    Route::put('projects/{id}', [ProjectController::class, 'update']);
     Route::delete('projects/{id}', [ProjectController::class, 'destroy'])->middleware('role:admin');
     
     // Project members

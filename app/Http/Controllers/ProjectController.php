@@ -89,6 +89,7 @@ class ProjectController extends Controller
             $user = Auth::user();
             Log::info('User roles:', $user->roles->pluck('name')->toArray());
             
+            // Manual authorization check
             if (!($user->roles->contains('name', 'admin') || $user->roles->contains('name', 'project_manager'))) {
                 return response()->json(['error' => 'Unauthorized. Only admin and project manager can update projects.'], 403);
             }

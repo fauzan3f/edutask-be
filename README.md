@@ -1,26 +1,26 @@
 # EduTask - Project Management System (Backend)
 
-EduTask adalah sistem manajemen proyek berbasis web yang dirancang khusus untuk lingkungan akademik. Aplikasi ini memungkinkan dosen, mahasiswa, dan tim riset untuk berkolaborasi dalam proyek, mengelola tugas, dan melacak progres pekerjaan.
+EduTask is a web-based project management system specifically designed for academic environments. This application enables lecturers, students, and research teams to collaborate on projects, manage tasks, and track work progress efficiently.
 
-## Fitur Utama
+## Key Features
 
-- **Autentikasi JWT**: Login, registrasi, dan otorisasi user berbasis token JWT dengan refresh token
-- **Multi-role User**: Admin, Manajer Proyek, dan Anggota Tim dengan permission yang berbeda
-- **Manajemen Proyek**: CRUD operasi untuk proyek dan tugas
-- **Status Tugas**: Pelacakan status tugas (To Do, In Progress, Review, Done)
-- **Komentar**: Fitur komentar untuk kolaborasi tim pada tugas
-- **Dashboard**: Statistik dan visualisasi progres menggunakan Chart.js
-- **Visualisasi Progres**: Tampilan grafik interaktif untuk progres proyek dengan Chart.js
-- **Upload File**: Sistem pengunggahan file untuk tugas dan proyek
-- **Jadwal Presentasi**: Fitur penjadwalan presentasi dengan notifikasi
+- **JWT Authentication**: Secure login, registration, and user authorization using JWT tokens with refresh token support.
+- **Multi-role User System**: Distinct roles for Admin, Project Manager, and Team Members with granular permissions.
+- **Project Management**: Full CRUD operations for projects and tasks.
+- **Task Status Tracking**: Lifecycle management for tasks (To Do, In Progress, Review, Done).
+- **Collaboration**: Comment system for team discussions on specific tasks.
+- **Dashboard**: Real-time statistics and progress visualization using Chart.js.
+- **Progress Visualization**: Interactive charts to monitor project health.
+- **File Upload**: System for attaching files to tasks and projects.
+- **Presentation Scheduling**: Feature for scheduling presentations with notifications.
 
-## Teknologi
+## Technology Stack
 
-- Laravel (Backend API)
-- JWT Authentication
-- Spatie Permission untuk manajemen role dan permission
-- Database MySQL/SQLite
-- REST API untuk integrasi dengan frontend
+- **Framework**: Laravel (Backend API)
+- **Authentication**: JWT Authentication
+- **Authorization**: Spatie Permission for role and permission management
+- **Database**: MySQL/SQLite
+- **Architecture**: REST API for seamless frontend integration
 
 ## Entity Relationship Diagram (ERD)
 
@@ -48,158 +48,82 @@ EduTask adalah sistem manajemen proyek berbasis web yang dirancang khusus untuk 
         +-------------->| project_id    |               |
                         | user_id       |               |
                         | role          |               |
-                        +---------------+               |
-                                                        |
-+---------------+       +---------------+       +-------v-------+
-|   Comments    |       | Task Statuses |       | Task Reminders|
-+---------------+       +---------------+       +---------------+
-| id            |       | id            |       | id            |
-| content       |       | task_id       |------>| task_id       |
-| task_id       |------>| changed_by    |<---+  | user_id       |<---+
-| user_id       |<---+  | from_status   |    |  | reminder_time |    |
-| parent_id     |----+  | to_status     |    |  | is_sent       |    |
-| is_edited     |    |  | comment       |    |  | sent_at       |    |
-| edited_at     |    |  +---------------+    |  | reminder_type |    |
-+---------------+    |                        |  | message      |    |
-                     |                        |  | is_recurring |    |
-                     |                        |  +---------------+    |
-                     |                        |                       |
-                     |                        |                       |
-                     |                        |                       |
-                     |                        |                       |
-                     +------------------------+-----------------------+
+                        | joined_at     |<--------------+
+                        +---------------+
 ```
 
-## Model Progress Project
+## Installation & Setup
 
-Backend mendukung pelacakan progress project dengan atribut berikut:
+### Prerequisites
+- PHP >= 8.1
+- Composer
+- MySQL
 
-- `progress` (integer): Nilai persentase progress (0-100%)
-- `status` (enum): Status project (Planning, In Progress, Completed)
+### Steps
 
-Model `Project` mengimplementasikan:
-
-- Cast otomatis untuk kolom `progress` ke tipe integer
-- Mutator khusus `setProgressAttribute` untuk memastikan nilai selalu berupa integer
-- Relasi ke task-task yang terkait
-- Perhitungan persentase penyelesaian otomatis berdasarkan status task
-
-## Alur Sistem
-
-1. **User Authentication**
-   - User melakukan registrasi atau login
-   - Sistem menghasilkan JWT token untuk autentikasi
-   - Token disimpan di client untuk request selanjutnya
-
-2. **Manajemen Proyek**
-   - Admin/Project Manager membuat proyek baru
-   - Proyek ditetapkan dengan manager dan anggota tim
-   - Anggota dapat melihat proyek dimana mereka terlibat
-   - Progress proyek dilacak dan divisualisasikan dengan Chart.js
-
-3. **Manajemen Tugas**
-   - Project Manager membuat dan menetapkan tugas
-   - Tugas dikategorikan berdasarkan status (To Do, In Progress, Review, Done)
-   - Anggota tim dapat memperbarui status tugas yang ditetapkan pada mereka
-   - Progress task secara otomatis memperbarui progress project
-
-4. **Kolaborasi**
-   - Anggota tim dapat menambahkan komentar pada tugas
-   - File dapat diunggah dan dibagikan dalam konteks tugas atau proyek
-   - Notifikasi dan pengingat otomatis untuk tenggat waktu tugas
-
-5. **Monitoring dan Pelaporan**
-   - Dashboard menampilkan statistik dan progres proyek
-   - Visualisasi data menggunakan Chart.js dengan grafik donut untuk progress
-   - Warna grafik menyesuaikan dengan status proyek (Planning: Biru, In Progress: Oranye, Completed: Hijau)
-   - Laporan dapat dilihat berdasarkan proyek, anggota, atau periode waktu
-
-6. **Penjadwalan Presentasi**
-   - Jadwal presentasi dapat dibuat untuk proyek
-   - Anggota tim diundang dan dapat mengonfirmasi kehadiran
-   - Pengingat otomatis dikirim mendekati waktu presentasi
-
-## Permission Management
-
-| Permission | Admin | Project Manager | Team Member |
-|------------|-------|----------------|-------------|
-| manage users | ✓ | ✗ | ✗ |
-| create project | ✓ | ✓ | ✗ |
-| update project | ✓ | ✓ | ✗ |
-| delete project | ✓ | ✗ | ✗ |
-| view project | ✓ | ✓ | ✓ |
-| create task | ✓ | ✓ | ✗ |
-| update task | ✓ | ✓ | ✗ |
-| delete task | ✓ | ✓ | ✗ |
-| view task | ✓ | ✓ | ✓ |
-| assign tasks | ✓ | ✓ | ✗ |
-| update tasks | ✓ | ✓ | ✓ |
-| comment tasks | ✓ | ✓ | ✓ |
-| view dashboard | ✓ | ✓ | ✓ |
-
-## Instalasi
-
-1. Clone repository
-   ```
-   git clone https://github.com/fauzan3f/edutask-be.git
-   cd edutask-be
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/edutask-backend.git
+   cd edutask-backend
    ```
 
-2. Install dependencies
-   ```
+2. **Install Dependencies**
+   ```bash
    composer install
    ```
 
-3. Setup environment
-   ```
+3. **Environment Configuration**
+   Copy the example environment file and configure your database settings.
+   ```bash
    cp .env.example .env
+   ```
+   Update the `.env` file with your database credentials:
+   ```env
+   DB_DATABASE=edutask
+   DB_USERNAME=root
+   DB_PASSWORD=
+   ```
+
+4. **Generate Application Key & JWT Secret**
+   ```bash
    php artisan key:generate
    php artisan jwt:secret
    ```
 
-4. Configure database in .env file
-
-5. Run migrations and seeders
-   ```
+5. **Run Migrations & Seeders**
+   ```bash
    php artisan migrate --seed
    ```
 
-6. Start development server
-   ```
+6. **Run the Server**
+   ```bash
    php artisan serve
    ```
-
-## Default Users
-
-- **Admin**
-  - Email: admin@edutask.com
-  - Password: password
-
-- **Project Manager**
-  - Email: manager@edutask.com
-  - Password: password
-
-- **Team Member**
-  - Email: member@edutask.com
-  - Password: password
+   The API will be available at `http://localhost:8000`.
 
 ## API Endpoints
 
-Dokumentasi API lengkap tersedia setelah instalasi di:
+### Authentication
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/login` - Login and retrieve token
+- `POST /api/auth/logout` - Logout user
+- `POST /api/auth/refresh` - Refresh JWT token
+- `GET /api/auth/me` - Get current user profile
 
-```
-http://localhost:8000/api/documentation
-```
+### Projects
+- `GET /api/projects` - List all projects
+- `POST /api/projects` - Create a new project
+- `GET /api/projects/{id}` - Get project details
+- `PUT /api/projects/{id}` - Update project
+- `DELETE /api/projects/{id}` - Delete project
 
-### Endpoint Progress Project
+### Tasks
+- `GET /api/projects/{id}/tasks` - List tasks for a project
+- `POST /api/tasks` - Create a new task
+- `PUT /api/tasks/{id}` - Update task status/details
 
-- `GET /api/projects/{id}`: Mendapatkan detail proyek termasuk nilai progress
-- `PUT /api/projects/{id}`: Mengupdate project termasuk nilai progress
-- `GET /api/debug/projects/{id}`: Endpoint debug untuk memeriksa tipe data progress
-- `GET /api/debug/projects/{id}/update-progress/{value}`: Endpoint debug untuk memperbarui progress
+## License
 
-## Pengembang
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
-- Muhammad Fauzan (Pengembang Aplikasi)
-- Rizki Yudistira (Membantu Front End)
-- Irsa Nurrohim (Membantu Back End)
+
